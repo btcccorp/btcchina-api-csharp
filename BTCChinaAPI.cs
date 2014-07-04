@@ -31,10 +31,9 @@ namespace BTCChina
         private static Random jsonRequestID = new Random();
 
         //attributes-like enums for static stringcollection eunmerate
-        public enum marketList { BTCCNY = 0, LTCCNY, LTCBTC, ALL };
-        public enum currencyList { BTC = 0, LTC };
-        public enum transactionTypeList { all = 0, fundbtc, withdrawbtc, fundmoney, withdrawmoney, refundmoney, buybtc, sellbtc, buyltc, sellltc, tradefee, rebate };
-
+        public enum MarketType { BTCCNY = 0, LTCCNY, LTCBTC, ALL };
+        public enum CurrencyType { BTC = 0, LTC };
+        public enum TransactionType { all = 0, fundbtc, withdrawbtc, fundmoney, withdrawmoney, refundmoney, buybtc, sellbtc, buyltc, sellltc, tradefee, rebate };
 
         /// <summary>
         /// Unique ctor sets access key and secret key, which cannot be changed later.
@@ -50,6 +49,7 @@ namespace BTCChina
             ServicePointManager.DefaultConnectionLimit = BTCChinaConnectionLimit; //one concurrent connection is allowed for this server atm.
             //ServicePointManager.UseNagleAlgorithm = false;
         }
+
         /// <summary>
         /// Place a buy/sell order.
         /// </summary>
@@ -58,20 +58,20 @@ namespace BTCChina
         /// <param name="market">Default is "BTCCNY". [ BTCCNY | LTCCNY | LTCBTC ]</param>
         /// <param name="id">JSON-request id</param>
         /// <returns>JSON string contains order id and json-request id.</returns>
-        public string PlaceOrder(double price, double amount, marketList markets = marketList.BTCCNY)
+        public string PlaceOrder(double price, double amount, MarketType markets = MarketType.BTCCNY)
         {
             string regPrice = "", regAmount = "", method = "", mParams = "";
             switch (markets)
             {
-                case marketList.BTCCNY:
+                case MarketType.BTCCNY:
                     regPrice = price.ToString("F2");
                     regAmount = amount.ToString("F4");
                     break;
-                case marketList.LTCCNY:
+                case MarketType.LTCCNY:
                     regPrice = price.ToString("F2");
                     regAmount = amount.ToString("F3");
                     break;
-                case marketList.LTCBTC:
+                case MarketType.LTCBTC:
                     regPrice = price.ToString("F4");
                     regAmount = amount.ToString("F3");
                     break;
@@ -92,11 +92,12 @@ namespace BTCChina
 
             mParams = regPrice + "," + regAmount;
             //not default market
-            if (markets != marketList.BTCCNY)
-                mParams += ",\"" + System.Enum.GetName(typeof(marketList), markets) + "\"";
+            if (markets != MarketType.BTCCNY)
+                mParams += ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"";
 
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
         /// Cancel an active order if the status is 'open'.
         /// </summary>
@@ -104,19 +105,20 @@ namespace BTCChina
         /// <param name="markets">Default is "BTCCNY". [ BTCCNY | LTCCNY | LTCBTC ]</param>
         /// <param name="id">JSON-request id.</param>
         /// <returns>JSON-string contains true or false depending on the result of cancellation and JSON-request id.</returns>
-        public string cancelOrder(int orderID, marketList markets=marketList.BTCCNY)
+        public string cancelOrder(int orderID, MarketType markets=MarketType.BTCCNY)
         {
             string method = "cancelOrder";
             string mParams = orderID.ToString();
             //all is not supported
-            if (markets == marketList.ALL)
+            if (markets == MarketType.ALL)
                 throw new BTCChinaException(method, "N/A", "Market:ALL is not supported.");
             //not default market
-            if (markets != marketList.BTCCNY)
-                mParams += ",\"" + System.Enum.GetName(typeof(marketList), markets) + "\"";
+            if (markets != MarketType.BTCCNY)
+                mParams += ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"";
 
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
         /// Get stored account information and user balance.
         /// </summary>
@@ -128,87 +130,103 @@ namespace BTCChina
             string mParams = "";
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
-        /// Get all user operations status: deposits/withdrawals.
+        /// Get all user deposits.
         /// </summary>
-        /// <param name="operation">true=deposits, false=withdrawals</param>
         /// <param name="currency">[ BTC | LTC ]</param>
         /// <param name="pendingonly">Default is 'true'. Only open(pending) deposits are returned.</param>
         /// <returns>JSON-string of deposit or withdrawal objects</returns>
-        public string getOperations(bool operation, currencyList currency, bool pendingonly = true)
+        public string getDeposits(CurrencyType currency, bool pendingonly = true)
         {
-            string method = "";
-            if (operation)
-                method = "getDeposits";
-            else
-                method = "getWithdrawals";
-            string mParams = "\"" + System.Enum.GetName(typeof(currencyList), currency) + "\"";
+            string method = "getDeposits";
+            string mParams = "\"" + System.Enum.GetName(typeof(CurrencyType), currency) + "\"";
             if (!pendingonly)
                 mParams += "," + pendingonly.ToString().ToLower();
             return DoMethod(BuildParams(method, mParams));
         }
+
+		/// <summary>
+        /// Get all user withdrawals.
+        /// </summary>
+        /// <param name="currency">[ BTC | LTC ]</param>
+        /// <param name="pendingonly">Default is 'true'. Only open(pending) deposits are returned.</param>
+        /// <returns>JSON-string of deposit or withdrawal objects</returns>
+        public string getWithdrawals(CurrencyType currency, bool pendingonly = true)
+        {
+            string method = "getWithdrawals";
+            string mParams = "\"" + System.Enum.GetName(typeof(CurrencyType), currency) + "\"";
+            if (!pendingonly)
+                mParams += "," + pendingonly.ToString().ToLower();
+            return DoMethod(BuildParams(method, mParams));
+        }
+
         /// <summary>
         /// Get the complete market depth. 
         /// </summary>
         /// <param name="limit">Number of orders returned. Default is 10 per side</param>
         /// <param name="markets">Default to “BTCCNY”. [ BTCCNY | LTCCNY | LTCBTC | ALL]</param>
         /// <returns>All open bid and ask orders.</returns>
-        public string getMarketDepth(uint limit = 10, marketList markets = marketList.BTCCNY)
+        public string getMarketDepth(uint limit = 10, MarketType markets = MarketType.BTCCNY)
         {
             string method = "getMarketDepth2";
             string mParams = "";
             if (limit != 10) mParams = limit.ToString();
-            if (markets != marketList.BTCCNY)
-                mParams += ",\"" + System.Enum.GetName(typeof(marketList), markets) + "\"";
+            if (markets != MarketType.BTCCNY)
+                mParams += ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"";
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
         /// Get withdrawal status.
         /// </summary>
         /// <param name="withdrawalID">The withdrawal id.</param>
         /// <param name="currency">Default is “BTC”. Can be [ BTC | LTC ]</param>
         /// <returns>JSON-string of withdrawal object</returns>
-        public string getWithdrawal(int withdrawalID, currencyList currency = currencyList.BTC)
+        public string getWithdrawal(int withdrawalID, CurrencyType currency = CurrencyType.BTC)
         {
             string method = "getWithdrawal";
             string mParams = withdrawalID.ToString();
-            if (currency != currencyList.BTC)
-                mParams += ",\"" + System.Enum.GetName(typeof(currencyList), currency) + "\"";//should be "LTC" but for further implmentations
+            if (currency != CurrencyType.BTC)
+                mParams += ",\"" + System.Enum.GetName(typeof(CurrencyType), currency) + "\"";//should be "LTC" but for further implmentations
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
         /// Make a withdrawal request. BTC withdrawals will pick last used withdrawal address from user profile.
         /// </summary>
         /// <param name="currency">Currency short code, [BTC | LTC ].</param>
         /// <param name="amount">Amount to withdraw.</param>
         /// <returns>Returns the withdrawal id</returns>
-        public string requestWithdrawal(currencyList currency, double amount)
+        public string requestWithdrawal(CurrencyType currency, double amount)
         {
             if (amount <= 0)
                 throw new BTCChinaException("requestWithdrawal", "N/A", "withdrawal amount cannot be negative nor zero");
             string method = "requestWithdrawal";
-            string mParams = "\"" + System.Enum.GetName(typeof(currencyList), currency) + "\"," + amount.ToString("F3");
+            string mParams = "\"" + System.Enum.GetName(typeof(CurrencyType), currency) + "\"," + amount.ToString("F3");
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
         /// Get order status.
         /// </summary>
         /// <param name="orderID">The order id.</param>
         /// <param name="markets">Default to “BTCCNY”. [ BTCCNY | LTCCNY | LTCBTC ]</param>
         /// <returns>JSON-string of order object.</returns>
-        public string getOrder(uint orderID, marketList markets = marketList.BTCCNY)
+        public string getOrder(uint orderID, MarketType markets = MarketType.BTCCNY)
         {
-            if (markets == marketList.ALL)
+            if (markets == MarketType.ALL)
                 throw new BTCChinaException("getOrder", "N/A", "Market: ALL is not supported.");
             else
             {
                 string method = "getOrder";
                 string mParams = orderID.ToString();
-                if (markets != marketList.BTCCNY)
-                    mParams += ",\"" + System.Enum.GetName(typeof(marketList), markets) + "\"";
+                if (markets != MarketType.BTCCNY)
+                    mParams += ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"";
                 return DoMethod(BuildParams(method, mParams));
             }
         }
+
         /// <summary>
         /// Get all order status.
         /// </summary>
@@ -217,28 +235,29 @@ namespace BTCChina
         /// <param name="limit">Limit the number of transactions, default value is 1000.</param>
         /// <param name="offset">Start index used for pagination, default value is 0.</param>
         /// <returns>JSON-string of order objects</returns>
-        public string getOrders(bool openonly = true, marketList markets = marketList.BTCCNY, uint limit = 1000, uint offset = 0)
+        public string getOrders(bool openonly = true, MarketType markets = MarketType.BTCCNY, uint limit = 1000, uint offset = 0)
         {
             //due to the complexity of parameters, all default values are explicitly set.
             string method = "getOrders";
             string mParams = openonly.ToString().ToLower() +
-                ",\"" + System.Enum.GetName(typeof(marketList), markets) + "\"," +
+                ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"," +
                 limit.ToString() + "," +
                 offset.ToString();
             return DoMethod(BuildParams(method, mParams));
         }
+
         /// <summary>
         /// Get transactions log.
         /// </summary>
-        /// <param name="transaction">Fetch transactions by type. Default is 'all'. Available types are defined in transactionTypeList enum.</param>
+        /// <param name="transaction">Fetch transactions by type. Default is 'all'. Available types are defined in TransactionType enum.</param>
         /// <param name="limit">Limit the number of transactions, default value is 10.</param>
         /// <param name="offset">Start index used for pagination, default value is 0</param>
         /// <returns>JSON-string of transaction object</returns>
-        public string getTransactions(transactionTypeList transaction = transactionTypeList.all, uint limit = 10, uint offset = 0)
+        public string getTransactions(TransactionType transaction = TransactionType.all, uint limit = 10, uint offset = 0)
         {
             //likewise, set all parameters
             string method = "getTransactions";
-            string mParams = "\"" + System.Enum.GetName(typeof(transactionTypeList), transaction) + "\","
+            string mParams = "\"" + System.Enum.GetName(typeof(TransactionType), transaction) + "\","
                 + limit.ToString() + ","
                 + offset.ToString();
             return DoMethod(BuildParams(method, mParams));
@@ -356,6 +375,7 @@ namespace BTCChina
             }
             return hashBuilder.ToString();
         }
+
         /// <summary>
         /// build namevaluecollection set for domethod()
         /// </summary>
