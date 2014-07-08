@@ -56,7 +56,6 @@ namespace BTCChina
         /// <param name="price">The price in quote currency to buy 1 base currency. Negative value to buy/sell at market price</param>
         /// <param name="amount">The amount of LTC/BTC to buy/sell. Negative value to sell, while positive value to buy</param>
         /// <param name="market">Default is "BTCCNY". [ BTCCNY | LTCCNY | LTCBTC ]</param>
-        /// <param name="id">JSON-request id</param>
         /// <returns>JSON string contains order id and json-request id.</returns>
         public string PlaceOrder(double price, double amount, MarketType markets = MarketType.BTCCNY)
         {
@@ -103,7 +102,6 @@ namespace BTCChina
         /// </summary>
         /// <param name="orderID">The order id to cancel.</param>
         /// <param name="markets">Default is "BTCCNY". [ BTCCNY | LTCCNY | LTCBTC ]</param>
-        /// <param name="id">JSON-request id.</param>
         /// <returns>JSON-string contains true or false depending on the result of cancellation and JSON-request id.</returns>
         public string cancelOrder(int orderID, MarketType markets=MarketType.BTCCNY)
         {
@@ -320,6 +318,11 @@ namespace BTCChina
                 catch (WebException ex)
                 {
                     throw new BTCChinaException(jParams[pMethod], jParams[pId], ex.Message);
+                }
+                //there are two kinds of API response, result or error.
+                if (tempResult.IndexOf("result") < 0)
+                {
+                    throw new BTCChinaException(jParams[pMethod], jParams[pId], "API error:\n" + tempResult);
                 }
                 //compare response id with request id and remove it from result
                 try
