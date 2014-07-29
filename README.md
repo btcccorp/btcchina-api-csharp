@@ -63,7 +63,7 @@ _Result:_
 
 ###Cancel order
 ```C#
-result = cancelOrder(int orderID, MarketType market = MarketType.BTCCNY);
+result = btcAPI.cancelOrder(int orderID, MarketType market = MarketType.BTCCNY);
 ```
 _Parameters:_
 
@@ -75,7 +75,7 @@ _Result_:
 
 ###Get Market Depth
 ```C#
-result = getMarketDepth(unsigned int limit = 10, MarketType market = MarketType.BTCCNY);
+result = btcAPI.getMarketDepth(unsigned int limit = 10, MarketType market = MarketType.BTCCNY);
 ```
 
 Get the complete market depth.
@@ -89,7 +89,7 @@ _Result:_
 
 ###Get Deposits
 ```C#
-result = getDeposits(CurrencyType currency, bool pendingonly = true);
+result = btcAPI.getDeposits(CurrencyType currency, bool pendingonly = true);
 ```
 
 Get all user deposits.
@@ -104,7 +104,7 @@ Array of [deposit](http://btcchina.org/api-trade-documentation-en#deposit) JSON 
 
 ###Get Withdrawals
 ```C#
-result = getWithdrawals(CurrencyType currency, bool pendingonly = true);
+result = btcAPI.getWithdrawals(CurrencyType currency, bool pendingonly = true);
 ```
 
 Get all user withdrawals.
@@ -119,7 +119,7 @@ _Result:_
 
 ###Get single withdrawal status
 ```C#
-result = getWithdrawal(int withdrawalID, CurrencyType currency = CurrencyType.BTC);
+result = btcAPI.getWithdrawal(int withdrawalID, CurrencyType currency = CurrencyType.BTC);
 ```
 
 _Parameters:_
@@ -132,7 +132,7 @@ _Result:_
 
 ###Request a withdrawal
 ```C#
-result = requestWithdrawal(CurrencyType currency, double amount);
+result = btcAPI.requestWithdrawal(CurrencyType currency, double amount);
 ```
 
 Make a withdrawal request. BTC withdrawals will pick last used withdrawal address from user profile.
@@ -148,7 +148,7 @@ Notice that the return format of withdrawalID is different from that of orderID.
 
 ###Get order status
 ```C#
-result = getOrder(unsigned int orderID, MarketType market = MarketType.BTCCNY);
+result = btcAPI.getOrder(unsigned int orderID, MarketType market = MarketType.BTCCNY);
 ```
 
 _Parameters:_
@@ -161,7 +161,7 @@ _Result:_
 
 ###Get all order status
 ```C#
-result = getOrders(bool openonly = true, MarketType market = MarketType.BTCCNY, unsigned int limit = 1000, unsigned int offset = 0);
+result = btcAPI.getOrders(bool openonly = true, MarketType market = MarketType.BTCCNY, unsigned int limit = 1000, unsigned int offset = 0);
 ```
 
 _Parameters:_
@@ -176,7 +176,7 @@ Array of [order](http://btcchina.org/api-trade-documentation-en#order) JSON obje
 
 ###Get transaction log
 ```C#
-result = getTransactions(TransactionType transaction = TransactionType.all, unsigned int limit = 10, unsigned int offset = 0);
+result = btcAPI.getTransactions(TransactionType transaction = TransactionType.all, unsigned int limit = 10, unsigned int offset = 0);
 ```
 
 Notice that prices returned by this method may differ from placeOrder as it is the price get procceeded.
