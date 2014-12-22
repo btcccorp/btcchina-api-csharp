@@ -232,15 +232,17 @@ namespace BTCChina
         /// <param name="markets">Default to “BTCCNY”. [ BTCCNY | LTCCNY | LTCBTC | ALL]</param>
         /// <param name="limit">Limit the number of transactions, default value is 1000.</param>
         /// <param name="offset">Start index used for pagination, default value is 0.</param>
+        /// <param name="withdetails">Return the trade details or not for this order. Can be set to true, false. Default to false, no detail will be returned.</param>
         /// <returns>JSON-string of order objects</returns>
-        public string getOrders(bool openonly = true, MarketType markets = MarketType.BTCCNY, uint limit = 1000, uint offset = 0)
+        public string getOrders(bool openonly = true, MarketType markets = MarketType.BTCCNY, uint limit = 1000, uint offset = 0, bool withdetails = false)
         {
             //due to the complexity of parameters, all default values are explicitly set.
             string method = "getOrders";
             string mParams = openonly.ToString().ToLower() +
                 ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"," +
                 limit.ToString() + "," +
-                offset.ToString();
+                offset.ToString() + "," +
+                withdetails.ToString().ToLower();
             return DoMethod(BuildParams(method, mParams));
         }
 
