@@ -25,6 +25,7 @@ namespace BTCChina
         private const string pId = "id";
         private const string pMethod = "method";
         private const string pParams = "params";
+        private const System.Globalization.CultureInfo culture = new System.Globalization.CultureInfo("en-us");
 
         private static DateTime genesis = new DateTime(1970, 1, 1);
         private static Object methodLock = new Object();//protect DoMethod()
@@ -63,16 +64,16 @@ namespace BTCChina
             switch (markets)
             {
                 case MarketType.BTCCNY:
-                    regPrice = price.ToString("F2");
-                    regAmount = amount.ToString("F4");
+                    regPrice = price.ToString("F2", culture);
+                    regAmount = amount.ToString("F4", culture);
                     break;
                 case MarketType.LTCCNY:
-                    regPrice = price.ToString("F2");
-                    regAmount = amount.ToString("F3");
+                    regPrice = price.ToString("F2", culture);
+                    regAmount = amount.ToString("F3", culture);
                     break;
                 case MarketType.LTCBTC:
-                    regPrice = price.ToString("F4");
-                    regAmount = amount.ToString("F3");
+                    regPrice = price.ToString("F4", culture);
+                    regAmount = amount.ToString("F3", culture);
                     break;
                 default://"ALL" is not supported
                     throw new BTCChinaException("PlaceOrder", "N/A", "Market not supported.");
@@ -104,7 +105,7 @@ namespace BTCChina
         /// <param name="orderID">The order id to cancel.</param>
         /// <param name="markets">Default is "BTCCNY". [ BTCCNY | LTCCNY | LTCBTC ]</param>
         /// <returns>JSON-string contains true or false depending on the result of cancellation and JSON-request id.</returns>
-        public string cancelOrder(int orderID, MarketType markets=MarketType.BTCCNY)
+        public string cancelOrder(int orderID, MarketType markets = MarketType.BTCCNY)
         {
             string method = "cancelOrder";
             string mParams = orderID.ToString();
@@ -145,7 +146,7 @@ namespace BTCChina
             return DoMethod(BuildParams(method, mParams));
         }
 
-		/// <summary>
+        /// <summary>
         /// Get all user withdrawals.
         /// </summary>
         /// <param name="currency">[ BTC | LTC ]</param>
@@ -202,7 +203,7 @@ namespace BTCChina
             if (amount <= 0)
                 throw new BTCChinaException("requestWithdrawal", "N/A", "withdrawal amount cannot be negative nor zero");
             string method = "requestWithdrawal";
-            string mParams = "\"" + System.Enum.GetName(typeof(CurrencyType), currency) + "\"," + amount.ToString("F3");
+            string mParams = "\"" + System.Enum.GetName(typeof(CurrencyType), currency) + "\"," + amount.ToString("F3", culture);
             return DoMethod(BuildParams(method, mParams));
         }
 
@@ -267,7 +268,7 @@ namespace BTCChina
         private string DoMethod(NameValueCollection jParams)
         {
             string tempResult = "";
-            lock(methodLock)
+            lock (methodLock)
             {
                 //get tonce
                 TimeSpan timeSpan = DateTime.UtcNow - genesis;
@@ -368,7 +369,7 @@ namespace BTCChina
             input = input.Replace("null", "");
 
             //Console.WriteLine(input);
-            
+
             HMACSHA1 hmacsha1 = new HMACSHA1(Encoding.ASCII.GetBytes(secretKey));
             MemoryStream stream = new MemoryStream(Encoding.ASCII.GetBytes(input));
             byte[] hashData = hmacsha1.ComputeHash(stream);
