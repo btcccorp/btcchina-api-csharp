@@ -90,7 +90,10 @@ namespace BTCChina
             }
 
 //          mParams = regPrice + "," + regAmount;
-            mParams = "\"" + regPrice + "\",\"" + regAmount + "\"";
+            if(regPrice=="null")
+		mParams = "" + regPrice + ",\"" + regAmount + "\"";
+	    else
+		mParams = "\"" + regPrice + "\",\"" + regAmount + "\"";
             //not default market
             if (markets != MarketType.BTCCNY)
                 mParams += ",\"" + System.Enum.GetName(typeof(MarketType), markets) + "\"";
